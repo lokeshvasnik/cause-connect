@@ -4,11 +4,12 @@
     "version": "0.1.0",
     "description": "Root package to run frontend and backend together",
     "scripts": {
-        "dev": "npm run dev:backend",
-        "dev:backend": "npm --prefix backend run dev",
-        "dev:frontend": "npm --prefix frontend run dev",
-        "build": "npm --prefix frontend run build",
-        "start": "npm --prefix backend run start"
+        "dev": "cd backend && npm run dev",
+        "dev:backend": "cd backend && npm run dev",
+        "dev:frontend": "cd frontend && npm run dev",
+        "build": "cd frontend && npm run build",
+        "start": "cd backend && npm start",
+        "postinstall": "cd backend && npm install"
     },
     "devDependencies": {}
 }
