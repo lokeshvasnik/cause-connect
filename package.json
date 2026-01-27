@@ -8,7 +8,7 @@
         "dev:backend": "cd backend && npm run dev",
         "dev:frontend": "cd frontend && npm run dev",
         "build": "cd frontend && npm run build",
-        "start": "cd backend && npm start"
+        "start": "node backend/src/server.js"
     },
     "devDependencies": {}
 }
