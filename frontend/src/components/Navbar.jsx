@@ -168,7 +168,15 @@ const Navbar = () => {
                                     color: "text.primary",
                                 }}
                             >
-                                Cause Connect
+                                <Link
+                                    to="/"
+                                    style={{
+                                        textDecoration: "none",
+                                        color: "inherit",
+                                    }}
+                                >
+                                    Cause Connect
+                                </Link>
                             </Typography>
                         </Box>
                         <Box>
