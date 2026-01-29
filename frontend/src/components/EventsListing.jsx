@@ -29,6 +29,7 @@ const EventsListing = ({ filterTerm = "", filterLocation = "" }) => {
     const [form, setForm] = useState({
         name: "",
         email: "",
+        phone: "",
         attendees: "1",
         notes: "",
     });
@@ -59,6 +60,8 @@ const EventsListing = ({ filterTerm = "", filterLocation = "" }) => {
                     id: e._id || e.id,
                     title: e.title,
                     date: e.date,
+                    startTime: e.startTime,
+                    endTime: e.endTime,
                     tag: e.tag,
                     location: e.location,
                     description: e.description,
@@ -88,17 +91,35 @@ const EventsListing = ({ filterTerm = "", filterLocation = "" }) => {
         setTimeout(() => {
             setSelected(null);
             setIsRegistering(false);
-            setForm({ name: "", email: "", attendees: "1", notes: "" });
+            setForm({
+                name: "",
+                email: "",
+                phone: "",
+                attendees: "1",
+                notes: "",
+            });
         }, 200);
     };
+
+    const isValidIndianPhone = (p) =>
+        /^(?:\+91|0)?[6-9]\d{9}$/.test((p || "").trim());
 
     const submitRegistration = async (e) => {
         e.preventDefault();
         if (!selected?.id) return;
+        if (!isValidIndianPhone(form.phone)) {
+            setSnack({
+                open: true,
+                msg: "Please enter a valid Indian phone number",
+                severity: "error",
+            });
+            return;
+        }
         try {
             await registerForEvent(selected.id, {
                 name: form.name,
                 email: form.email,
+                phone: form.phone.trim(),
                 attendees: Number(form.attendees || 1),
                 notes: form.notes,
             });
@@ -142,7 +163,14 @@ const EventsListing = ({ filterTerm = "", filterLocation = "" }) => {
                     </Grid>
                 )}
                 {items.map((event, index) => (
-                    <Grid item xs={12} md={4} key={index}>
+                    <Grid
+                        item
+                        xs={12}
+                        md={4}
+                        key={index}
+                        onClick={() => openDetails(event)}
+                        sx={{ cursor: "pointer" }}
+                    >
                         <Card
                             sx={{
                                 borderRadius: 2,
@@ -210,8 +238,20 @@ const EventsListing = ({ filterTerm = "", filterLocation = "" }) => {
                                         variant="caption"
                                         color="text.secondary"
                                     >
-                                        {event.location}
+                                        <b> {event.location}</b>
                                     </Typography>
+                                    {event.startTime && event.endTime && (
+                                        <Typography
+                                            variant="caption"
+                                            color="text.secondary"
+                                            sx={{ mb: 1 }}
+                                        >
+                                            <b>
+                                                {" "}
+                                                {`${dayjs(event.startTime).format("h:mm A")} to ${dayjs(event.endTime).format("h:mm A")}`}
+                                            </b>
+                                        </Typography>
+                                    )}
                                 </Stack>
 
                                 <Typography
@@ -367,6 +407,30 @@ const EventsListing = ({ filterTerm = "", filterLocation = "" }) => {
                                             ...f,
                                             email: e.target.value,
                                         }))
+                                    }
+                                    required
+                                    fullWidth
+                                />
+                                <TextField
+                                    type="tel"
+                                    label="Phone (India)"
+                                    placeholder="e.g. +91 9876543210"
+                                    value={form.phone}
+                                    onChange={(e) =>
+                                        setForm((f) => ({
+                                            ...f,
+                                            phone: e.target.value,
+                                        }))
+                                    }
+                                    error={
+                                        !!form.phone &&
+                                        !isValidIndianPhone(form.phone)
+                                    }
+                                    helperText={
+                                        !!form.phone &&
+                                        !isValidIndianPhone(form.phone)
+                                            ? "Enter a valid Indian mobile number"
+                                            : ""
                                     }
                                     required
                                     fullWidth

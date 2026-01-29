@@ -21,7 +21,7 @@ import { MapPin, Search, UserRound } from "lucide-react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { getEvents } from "../api";
 
-import logo from "../assets/logo.svg";
+import logo from "../assets/logo.png";
 
 const Navbar = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -142,7 +142,21 @@ const Navbar = () => {
                             alignItems="center"
                             sx={{ gap: 1 }}
                         >
-                            <img src={logo} alt="Campaign Connect logo" />
+                            <Box
+                                sx={{
+                                    width: { xs: 20, sm: 34, md: 38, lg: 72 },
+                                }}
+                            >
+                                <img
+                                    src={logo}
+                                    alt="Cause Connect logo"
+                                    style={{
+                                        width: "100%",
+                                        height: "auto",
+                                        display: "block",
+                                    }}
+                                />
+                            </Box>
                             <Typography
                                 variant="body2"
                                 component="div"
@@ -154,7 +168,7 @@ const Navbar = () => {
                                     color: "text.primary",
                                 }}
                             >
-                                Campaign Connect
+                                Cause Connect
                             </Typography>
                         </Box>
                         <Box>

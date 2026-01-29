@@ -448,6 +448,7 @@ const AdminDashboard = () => {
                                     <TableRow>
                                         <TableCell>Name</TableCell>
                                         <TableCell>Email</TableCell>
+                                        <TableCell>Phone</TableCell>
                                         <TableCell>Attendees</TableCell>
                                         <TableCell>Registered</TableCell>
                                     </TableRow>
@@ -457,6 +458,7 @@ const AdminDashboard = () => {
                                         <TableRow key={reg._id}>
                                             <TableCell>{reg.name}</TableCell>
                                             <TableCell>{reg.email}</TableCell>
+                                            <TableCell>{reg.phone}</TableCell>
                                             <TableCell>
                                                 {reg.attendees}
                                             </TableCell>

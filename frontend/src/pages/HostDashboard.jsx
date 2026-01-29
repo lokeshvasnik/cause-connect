@@ -25,6 +25,7 @@ import {
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import dayjs from "dayjs";
 import {
     logout,
@@ -57,6 +58,8 @@ const HostDashboard = () => {
     const [form, setForm] = useState({
         title: "",
         date: null,
+        startTime: null,
+        endTime: null,
         tag: "",
         location: "",
         description: "",
@@ -89,6 +92,8 @@ const HostDashboard = () => {
                     id: e._id || e.id,
                     title: e.title,
                     date: e.date,
+                    startTime: e.startTime,
+                    endTime: e.endTime,
                     tag: e.tag,
                     location: e.location,
                     description: e.description,
@@ -112,13 +117,32 @@ const HostDashboard = () => {
     }, [auth]);
 
     const isValid = useMemo(() => {
-        return (
+        const basic =
             form.title.trim() &&
             !!form.date &&
+            !!form.startTime &&
+            !!form.endTime &&
             form.tag.trim() &&
             form.location.trim() &&
-            form.description.trim()
-        );
+            form.description.trim();
+        if (!basic) return false;
+        // Ensure end after start (same day)
+        try {
+            const d = form.date;
+            const st = d
+                .hour(form.startTime.hour())
+                .minute(form.startTime.minute())
+                .second(0)
+                .millisecond(0);
+            const et = d
+                .hour(form.endTime.hour())
+                .minute(form.endTime.minute())
+                .second(0)
+                .millisecond(0);
+            return et.isAfter(st);
+        } catch {
+            return false;
+        }
     }, [form]);
 
     const doLogout = () => {
@@ -133,9 +157,33 @@ const HostDashboard = () => {
         e.preventDefault();
         if (!isValid || !auth) return;
         try {
+            // Combine date with start/end times
+            const date = form.date;
+            const startDt = date
+                .hour(form.startTime.hour())
+                .minute(form.startTime.minute())
+                .second(0)
+                .millisecond(0);
+            const endDt = date
+                .hour(form.endTime.hour())
+                .minute(form.endTime.minute())
+                .second(0)
+                .millisecond(0);
+
+            if (!endDt.isAfter(startDt)) {
+                setSnack({
+                    open: true,
+                    msg: "End time must be after start time",
+                    severity: "error",
+                });
+                return;
+            }
+
             const payload = {
                 title: form.title,
                 date: form.date?.toDate().toISOString(),
+                startTime: startDt.toDate().toISOString(),
+                endTime: endDt.toDate().toISOString(),
                 tag: form.tag,
                 location: form.location,
                 description: form.description,
@@ -156,6 +204,8 @@ const HostDashboard = () => {
             setForm({
                 title: "",
                 date: null,
+                startTime: null,
+                endTime: null,
                 tag: "",
                 location: "",
                 description: "",
@@ -202,6 +252,7 @@ const HostDashboard = () => {
                 id: r._id || r.id,
                 name: r.name,
                 email: r.email,
+                phone: r.phone,
                 attendees: r.attendees,
                 notes: r.notes,
                 createdAt: r.createdAt,
@@ -275,7 +326,45 @@ const HostDashboard = () => {
                                         fullWidth
                                     />
                                     <Grid container spacing={2}>
-                                        <Grid item xs={12} md={6}>
+                                        <Grid item xs={12} md={4}>
+                                            <TimePicker
+                                                label="Start Time"
+                                                value={form.startTime}
+                                                onChange={(newValue) =>
+                                                    setForm((f) => ({
+                                                        ...f,
+                                                        startTime: newValue,
+                                                    }))
+                                                }
+                                                slotProps={{
+                                                    textField: {
+                                                        required: true,
+                                                        fullWidth: true,
+                                                    },
+                                                }}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} md={4}>
+                                            <TimePicker
+                                                label="End Time"
+                                                value={form.endTime}
+                                                onChange={(newValue) =>
+                                                    setForm((f) => ({
+                                                        ...f,
+                                                        endTime: newValue,
+                                                    }))
+                                                }
+                                                slotProps={{
+                                                    textField: {
+                                                        required: true,
+                                                        fullWidth: true,
+                                                    },
+                                                }}
+                                            />
+                                        </Grid>
+                                    </Grid>
+                                    <Grid container spacing={2}>
+                                        <Grid item xs={12} md={4}>
                                             <DatePicker
                                                 label="Date"
                                                 value={form.date}
@@ -293,6 +382,7 @@ const HostDashboard = () => {
                                                 }}
                                             />
                                         </Grid>
+
                                         <Grid item xs={12} md={6}>
                                             <TextField
                                                 label="Tag"
@@ -416,7 +506,16 @@ const HostDashboard = () => {
                                                     ? dayjs(event.date).format(
                                                           "MMM D, YYYY",
                                                       )
-                                                    : ""}{" "}
+                                                    : ""}
+                                                {event.startTime &&
+                                                    event.endTime &&
+                                                    `, ${dayjs(
+                                                        event.startTime,
+                                                    ).format(
+                                                        "h:mm A",
+                                                    )} to ${dayjs(
+                                                        event.endTime,
+                                                    ).format("h:mm A")}`}{" "}
                                                 · {event.tag} · {event.location}
                                             </Typography>
                                             <Typography
@@ -494,6 +593,7 @@ const HostDashboard = () => {
                                             <TableRow>
                                                 <TableCell>Name</TableCell>
                                                 <TableCell>Email</TableCell>
+                                                <TableCell>Phone</TableCell>
                                                 <TableCell>Attendees</TableCell>
                                                 <TableCell>Notes</TableCell>
                                                 <TableCell>
@@ -509,6 +609,9 @@ const HostDashboard = () => {
                                                     </TableCell>
                                                     <TableCell>
                                                         {m.email}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {m.phone}
                                                     </TableCell>
                                                     <TableCell>
                                                         {m.attendees}
