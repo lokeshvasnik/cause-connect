@@ -37,12 +37,20 @@ const Navbar = () => {
     );
     const [searchOptions, setSearchOptions] = useState([]);
     const [locationOptions, setLocationOptions] = useState([]);
+    const [searchLoading, setSearchLoading] = useState(false);
+    const [locationLoading, setLocationLoading] = useState(false);
 
     const toggleDrawer = () => setMobileOpen((prev) => !prev);
 
     const navigateToSearch = (term, loc) => {
         const t = (term || "").trim();
         const l = (loc || "").trim();
+        // If only location is provided, go to Upcoming Events (home) with location filter
+        if (!t && l) {
+            localStorage.setItem("lastLocation", l);
+            navigate(`/?location=${encodeURIComponent(l)}`);
+            return;
+        }
         if (!t) return;
         localStorage.setItem("lastSearchTerm", t);
         if (l) localStorage.setItem("lastLocation", l);
@@ -53,13 +61,11 @@ const Navbar = () => {
     useEffect(() => {
         let active = true;
         const t = searchInput.trim();
-        if (!t) {
-            setSearchOptions([]);
-            return;
-        }
         const handle = setTimeout(async () => {
             try {
-                const res = await getEvents({ term: t, pageSize: 10 });
+                setSearchLoading(true);
+                const query = t ? { term: t, pageSize: 10 } : { pageSize: 10 };
+                const res = await getEvents(query);
                 if (!active) return;
                 const titles = Array.from(
                     new Set(
@@ -67,26 +73,34 @@ const Navbar = () => {
                     ),
                 );
                 setSearchOptions(titles);
-            } catch (e) {
+                if (!t) {
+                    localStorage.removeItem("lastSearchTerm");
+                    if (location.pathname.startsWith("/search")) {
+                        navigate("/");
+                    }
+                }
+            } catch {
                 if (active) setSearchOptions([]);
+            } finally {
+                if (active) setSearchLoading(false);
             }
-        }, 200);
+        }, 250);
         return () => {
             active = false;
             clearTimeout(handle);
         };
-    }, [searchInput]);
+    }, [searchInput, location.pathname, navigate]);
 
     useEffect(() => {
         let active = true;
         const l = locationInput.trim();
-        if (!l) {
-            setLocationOptions([]);
-            return;
-        }
         const handle = setTimeout(async () => {
             try {
-                const res = await getEvents({ location: l, pageSize: 20 });
+                setLocationLoading(true);
+                const query = l
+                    ? { location: l, pageSize: 20 }
+                    : { pageSize: 20 };
+                const res = await getEvents(query);
                 if (!active) return;
                 const locations = Array.from(
                     new Set(
@@ -96,15 +110,23 @@ const Navbar = () => {
                     ),
                 );
                 setLocationOptions(locations);
-            } catch (e) {
+                if (!l) {
+                    localStorage.removeItem("lastLocation");
+                    if (location.search.includes("location=")) {
+                        navigate(location.pathname);
+                    }
+                }
+            } catch {
                 if (active) setLocationOptions([]);
+            } finally {
+                if (active) setLocationLoading(false);
             }
-        }, 200);
+        }, 250);
         return () => {
             active = false;
             clearTimeout(handle);
         };
-    }, [locationInput]);
+    }, [locationInput, location.pathname, location.search, navigate]);
 
     return (
         <AppBar
@@ -218,6 +240,8 @@ const Navbar = () => {
                                 options={searchOptions}
                                 size="small"
                                 sx={{ width: "100%" }}
+                                openOnFocus
+                                loading={searchLoading}
                                 inputValue={searchInput}
                                 onInputChange={(e, val) => setSearchInput(val)}
                                 onChange={(event, value, reason) => {
@@ -259,6 +283,8 @@ const Navbar = () => {
                                     maxWidth: { md: 200, xs: "100%" },
                                     width: "100%",
                                 }}
+                                openOnFocus
+                                loading={locationLoading}
                                 inputValue={locationInput}
                                 onInputChange={(e, val) =>
                                     setLocationInput(val)
@@ -266,6 +292,7 @@ const Navbar = () => {
                                 onChange={(event, value, reason) => {
                                     if (reason === "selectOption" && value) {
                                         setLocationInput(value);
+                                        navigateToSearch(searchInput, value);
                                     }
                                 }}
                                 renderInput={(params) => (
@@ -418,11 +445,15 @@ const Navbar = () => {
                             freeSolo
                             options={locationOptions}
                             size="small"
+                            openOnFocus
+                            loading={locationLoading}
                             inputValue={locationInput}
                             onInputChange={(e, val) => setLocationInput(val)}
                             onChange={(event, value, reason) => {
                                 if (reason === "selectOption" && value) {
                                     setLocationInput(value);
+                                    navigateToSearch(searchInput, value);
+                                    setMobileOpen(false);
                                 }
                             }}
                             renderInput={(params) => (

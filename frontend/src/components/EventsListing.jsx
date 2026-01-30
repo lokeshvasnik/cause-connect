@@ -17,6 +17,7 @@ import {
     Typography,
     Snackbar,
     Alert,
+    CircularProgress,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import dayjs from "dayjs";
@@ -41,6 +42,7 @@ const EventsListing = ({ filterTerm = "", filterLocation = "" }) => {
         msg: "",
         severity: "info",
     });
+    const [clamped, setClamped] = useState({});
 
     const term = useMemo(() => filterTerm.trim(), [filterTerm]);
     const location = useMemo(
@@ -147,7 +149,15 @@ const EventsListing = ({ filterTerm = "", filterLocation = "" }) => {
             <Grid container spacing={3}>
                 {loading && (
                     <Grid item xs={12}>
-                        <Typography color="text.secondary">Loading…</Typography>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                justifyContent: "center",
+                                py: 4,
+                            }}
+                        >
+                            <CircularProgress color="primary" />
+                        </Box>
                     </Grid>
                 )}
                 {!!error && (
@@ -265,10 +275,46 @@ const EventsListing = ({ filterTerm = "", filterLocation = "" }) => {
                                 <Typography
                                     variant="body1"
                                     color="text.secondary"
-                                    sx={{ mb: 4, lineHeight: 1.6 }}
+                                    sx={{
+                                        mb: 1.5,
+                                        lineHeight: 1.6,
+                                        display: "-webkit-box",
+                                        WebkitLineClamp: 4,
+                                        WebkitBoxOrient: "vertical",
+                                        overflow: "hidden",
+                                    }}
+                                    ref={(el) => {
+                                        if (el) {
+                                            const isOverflow =
+                                                el.scrollHeight >
+                                                el.clientHeight + 1;
+                                            const key = event.id ?? index;
+                                            if (clamped[key] !== isOverflow) {
+                                                setClamped((prev) => ({
+                                                    ...prev,
+                                                    [key]: isOverflow,
+                                                }));
+                                            }
+                                        }
+                                    }}
                                 >
                                     {event.description}
                                 </Typography>
+
+                                {clamped[event.id ?? index] && (
+                                    <Button
+                                        variant="text"
+                                        sx={{
+                                            textTransform: "none",
+                                            fontWeight: 600,
+                                            px: 0,
+                                            mb: 2,
+                                        }}
+                                        onClick={() => openDetails(event)}
+                                    >
+                                        Read more
+                                    </Button>
+                                )}
 
                                 <Box
                                     sx={{

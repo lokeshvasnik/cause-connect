@@ -21,6 +21,7 @@ import {
     TableRow,
     TableCell,
     TableBody,
+    CircularProgress,
 } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -265,6 +266,28 @@ const HostDashboard = () => {
         }
     };
 
+    const handleEnterFocusNext = (e) => {
+        if (e.key !== "Enter") return;
+        const formEl = e.currentTarget;
+        const fields = Array.from(
+            formEl.querySelectorAll("input, textarea, select"),
+        ).filter(
+            (el) => !el.disabled && el.tabIndex !== -1 && el.type !== "hidden",
+        );
+        const idx = fields.indexOf(e.target);
+        if (idx >= 0) {
+            // find next focusable field
+            for (let i = idx + 1; i < fields.length; i++) {
+                const next = fields[i];
+                if (next) {
+                    e.preventDefault();
+                    next.focus();
+                    break;
+                }
+            }
+        }
+    };
+
     return (
         <Container maxWidth="lg" sx={{ py: 6 }}>
             <Stack
@@ -310,6 +333,7 @@ const HostDashboard = () => {
                                 <Stack
                                     component="form"
                                     onSubmit={addEvent}
+                                    onKeyDown={handleEnterFocusNext}
                                     spacing={2}
                                     sx={{ maxWidth: 720 }}
                                 >
@@ -461,9 +485,9 @@ const HostDashboard = () => {
                     <Grid container spacing={3}>
                         {loading && (
                             <Grid item xs={12}>
-                                <Typography color="text.secondary">
-                                    Loading…
-                                </Typography>
+                                <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                                    <CircularProgress color="primary" />
+                                </Box>
                             </Grid>
                         )}
                         {!!error && (
@@ -569,9 +593,9 @@ const HostDashboard = () => {
                         </DialogTitle>
                         <DialogContent dividers>
                             {membersLoading && (
-                                <Typography color="text.secondary">
-                                    Loading…
-                                </Typography>
+                                <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
+                                    <CircularProgress color="primary" />
+                                </Box>
                             )}
                             {!!membersError && (
                                 <Typography color="error.main">
