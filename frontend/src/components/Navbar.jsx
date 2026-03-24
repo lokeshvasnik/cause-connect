@@ -357,7 +357,7 @@ const Navbar = () => {
                         <Button variant="contained" color="primary">
                             Register
                         </Button> */}
-                        <IconButton
+                        {/* <IconButton
                             color="default"
                             sx={{
                                 border: "1px solid",
@@ -365,7 +365,7 @@ const Navbar = () => {
                             }}
                         >
                             <UserRound />
-                        </IconButton>
+                        </IconButton> */}
                     </Stack>
                 </Toolbar>
             </Container>
@@ -382,7 +382,7 @@ const Navbar = () => {
                     justifyContent="space-between"
                     sx={{ mb: 2 }}
                 >
-                    <Stack direction="row" spacing={1} alignItems="center">
+                    {/* <Stack direction="row" spacing={1} alignItems="center">
                         <IconButton
                             color="default"
                             sx={{
@@ -392,7 +392,7 @@ const Navbar = () => {
                         >
                             <UserRound />
                         </IconButton>
-                    </Stack>
+                    </Stack> */}
                     <IconButton
                         onClick={toggleDrawer}
                         aria-label="Close navigation menu"
