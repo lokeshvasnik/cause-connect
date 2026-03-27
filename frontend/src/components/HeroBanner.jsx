@@ -1,24 +1,78 @@
+import { useEffect, useMemo, useState } from "react";
 import { Box, Container, Stack, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { Grid, Paper } from "@mui/material";
+import { Grid } from "@mui/material";
+import { getPublicStats } from "../api";
 
-import heroBanner from "../assets/hero-banner.png";
+import heroBanner from "../assets/carousel-one.jpg";
+import heroBanner2 from "../assets/carousel-two.jpg";
+import heroBanner3 from "../assets/carousel-three.jpg";
 
 const HeroBanner = () => {
-    const heroStats = [
-        { label: "Active Users", value: "10,000+" },
-        { label: "Completed campaigns", value: "5000+" },
-        { label: "Active Users", value: "6000+" },
-    ];
+    const heroSlides = useMemo(
+        () => [heroBanner, heroBanner2, heroBanner3],
+        [],
+    );
+    const [activeSlide, setActiveSlide] = useState(0);
+    const [stats, setStats] = useState({
+        totalRegisteredUsers: 0,
+        completedCampaigns: 0,
+        activeCampaigns: 0,
+    });
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setActiveSlide((prev) => (prev + 1) % heroSlides.length);
+        }, 3000);
+
+        return () => clearInterval(timer);
+    }, [heroSlides.length]);
+
+    useEffect(() => {
+        let mounted = true;
+
+        async function loadStats() {
+            try {
+                const data = await getPublicStats();
+                if (!mounted) return;
+                setStats({
+                    totalRegisteredUsers: data.totalRegisteredUsers || 0,
+                    completedCampaigns: data.completedCampaigns || 0,
+                    activeCampaigns: data.activeCampaigns || 0,
+                });
+            } catch {
+                // Keep default zero values if stats API is unavailable.
+            }
+        }
+
+        loadStats();
+        return () => {
+            mounted = false;
+        };
+    }, []);
+
+    const heroStats = useMemo(
+        () => [
+            {
+                label: "Registered Users",
+                value: stats.totalRegisteredUsers.toLocaleString("en-IN"),
+            },
+            {
+                label: "Completed campaigns",
+                value: stats.completedCampaigns.toLocaleString("en-IN"),
+            },
+            {
+                label: "Active campaigns",
+                value: stats.activeCampaigns.toLocaleString("en-IN"),
+            },
+        ],
+        [stats],
+    );
     return (
         <>
             <Box
                 sx={{
                     position: "relative",
-                    backgroundImage: `url(${heroBanner})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    backgroundRepeat: "no-repeat",
                     minHeight: { xs: 360, md: 480 },
                     display: "flex",
                     alignItems: "center",
@@ -26,6 +80,22 @@ const HeroBanner = () => {
                     overflow: "hidden",
                 }}
             >
+                {heroSlides.map((image, index) => (
+                    <Box
+                        key={image}
+                        sx={{
+                            position: "absolute",
+                            inset: 0,
+                            backgroundImage: `url(${image})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                            backgroundRepeat: "no-repeat",
+                            opacity: index === activeSlide ? 1 : 0,
+                            transition: "opacity 900ms ease-in-out",
+                            zIndex: 0,
+                        }}
+                    />
+                ))}
                 <Box
                     sx={{
                         position: "absolute",
@@ -35,12 +105,17 @@ const HeroBanner = () => {
                                 theme.palette.text.primary,
                                 0.78,
                             )}, ${alpha(theme.palette.text.primary, 0.48)})`,
+                        zIndex: 1,
                     }}
                 />
 
                 <Container
                     maxWidth="lg"
-                    sx={{ position: "relative", py: { xs: 4, md: 6 } }}
+                    sx={{
+                        position: "relative",
+                        zIndex: 2,
+                        py: { xs: 4, md: 6 },
+                    }}
                 >
                     <Stack
                         spacing={2}

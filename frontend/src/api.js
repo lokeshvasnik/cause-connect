@@ -77,6 +77,10 @@ export async function getEvent(id) {
     return apiFetch(`/events/${id}`);
 }
 
+export async function getPublicStats() {
+    return apiFetch("/events/stats");
+}
+
 export async function registerForEvent(id, payload) {
     return apiFetch(`/events/${id}/registrations`, {
         method: "POST",

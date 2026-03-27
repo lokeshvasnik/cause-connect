@@ -14,7 +14,7 @@ const steps = [
     {
         title: "Find Events",
         description:
-            "Browse upcoming events or use our search to find opportunities that match your interests and schedule.",
+            "Explore upcoming events that fit your interests and schedule, from networking to cultural experiences.",
         icon: (
             <SvgIcon
                 component={Search}
@@ -25,9 +25,9 @@ const steps = [
         bgColor: (theme) => alpha(theme.palette.primary.main, 0.08),
     },
     {
-        title: "Find Events", // Keeping title same as per your image
+        title: "Connect with People", // Keeping title same as per your image
         description:
-            "Browse upcoming events or use our search to find opportunities that match your interests and schedule.",
+            "Connect with individuals who share your passions and build communities that inspire growth.",
         icon: (
             <SvgIcon
                 component={UserRound}
@@ -38,9 +38,9 @@ const steps = [
         bgColor: (theme) => alpha(theme.palette.secondary.main, 0.08),
     },
     {
-        title: "Find Events", // Keeping title same as per your image
+        title: "Build Friendships", // Keeping title same as per your image
         description:
-            "Browse upcoming events or use our search to find opportunities that match your interests and schedule.",
+            "Expand your circle through engaging events and create lasting friendships rooted in shared experiences.",
         icon: (
             <SvgIcon
                 component={Heart}

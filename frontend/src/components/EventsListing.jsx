@@ -106,6 +106,13 @@ const EventsListing = ({ filterTerm = "", filterLocation = "" }) => {
     const isValidIndianPhone = (p) =>
         /^(?:\+91|0)?[6-9]\d{9}$/.test((p || "").trim());
 
+    const isPastEvent = (event) => {
+        if (!event?.date) return false;
+        const eventDay = dayjs(event.date);
+        if (!eventDay.isValid()) return false;
+        return eventDay.endOf("day").isBefore(dayjs());
+    };
+
     const submitRegistration = async (e) => {
         e.preventDefault();
         if (!selected?.id) return;
@@ -172,172 +179,217 @@ const EventsListing = ({ filterTerm = "", filterLocation = "" }) => {
                         </Typography>
                     </Grid>
                 )}
-                {items.map((event, index) => (
-                    <Grid
-                        item
-                        xs={12}
-                        md={4}
-                        key={index}
-                        onClick={() => openDetails(event)}
-                        sx={{ cursor: "pointer" }}
-                    >
-                        <Card
+                {items.map((event, index) => {
+                    const expired = isPastEvent(event);
+                    return (
+                        <Grid
+                            item
+                            xs={12}
+                            md={4}
+                            key={index}
+                            onClick={
+                                expired ? undefined : () => openDetails(event)
+                            }
                             sx={{
-                                borderRadius: 2,
-                                boxShadow: "none",
-                                border: "1px solid",
-                                borderColor: "divider",
-                                position: "relative",
-                                height: "100%",
-                                maxWidth: "360px",
+                                cursor: expired ? "not-allowed" : "pointer",
+                                opacity: expired ? 0.8 : 1,
                             }}
                         >
-                            {/* Date Chip Overlay */}
-                            <Chip
-                                label={
-                                    event.date
-                                        ? dayjs(event.date).format(
-                                              "MMM D, YYYY",
-                                          )
-                                        : ""
-                                }
+                            <Card
                                 sx={{
-                                    position: "absolute",
-                                    top: 16,
-                                    left: 16,
-                                    bgcolor: (theme) =>
-                                        alpha(theme.palette.common.white, 0.9),
-                                    fontWeight: 500,
-                                    borderRadius: "4px",
-                                    color: "primary.main",
+                                    borderRadius: 2,
+                                    boxShadow: "none",
+                                    border: "1px solid",
+                                    borderColor: expired
+                                        ? "grey.400"
+                                        : "divider",
+                                    position: "relative",
+                                    height: "100%",
+                                    maxWidth: "360px",
+                                    bgcolor: expired
+                                        ? "grey.400"
+                                        : "background.paper",
                                 }}
-                            />
+                            >
+                                {/* Date Chip Overlay */}
+                                <Chip
+                                    label={
+                                        event.date
+                                            ? dayjs(event.date).format(
+                                                  "MMM D, YYYY",
+                                              )
+                                            : ""
+                                    }
+                                    sx={{
+                                        position: "absolute",
+                                        top: 16,
+                                        left: 16,
+                                        bgcolor: (theme) =>
+                                            expired
+                                                ? alpha(
+                                                      theme.palette.grey[200],
+                                                      0.95,
+                                                  )
+                                                : alpha(
+                                                      theme.palette.common
+                                                          .white,
+                                                      0.9,
+                                                  ),
+                                        fontWeight: 500,
+                                        borderRadius: "4px",
+                                        color: expired
+                                            ? "text.secondary"
+                                            : "primary.main",
+                                    }}
+                                />
 
-                            <CardMedia
-                                component="img"
-                                height="220"
-                                image={
-                                    event.image ||
-                                    "https://images.unsplash.com/photo-1520975916090-3105956dac38?auto=format&fit=crop&w=1400&q=80"
-                                }
-                                alt={event.title}
-                            />
+                                <CardMedia
+                                    component="img"
+                                    height="220"
+                                    image={
+                                        event.image ||
+                                        "https://images.unsplash.com/photo-1520975916090-3105956dac38?auto=format&fit=crop&w=1400&q=80"
+                                    }
+                                    alt={event.title}
+                                />
 
-                            <CardContent sx={{ px: 3, pt: 2, pb: 3 }}>
-                                <Stack
-                                    direction="row"
-                                    spacing={2}
-                                    alignItems="center"
-                                    sx={{ mb: 1 }}
-                                >
-                                    <Chip
-                                        label={event.tag}
-                                        size="small"
-                                        sx={{
-                                            bgcolor: (theme) =>
-                                                alpha(
-                                                    theme.palette.primary.main,
-                                                    0.08,
-                                                ),
-                                            color: "primary.main",
-                                            borderRadius: "4px",
-                                            fontWeight: 600,
-                                        }}
-                                    />
-                                    <Typography
-                                        variant="caption"
-                                        color="text.secondary"
+                                <CardContent sx={{ px: 3, pt: 2, pb: 3 }}>
+                                    <Stack
+                                        direction="row"
+                                        spacing={2}
+                                        alignItems="center"
+                                        sx={{ mb: 1 }}
                                     >
-                                        <b> {event.location}</b>
-                                    </Typography>
-                                    {event.startTime && event.endTime && (
+                                        <Chip
+                                            label={event.tag}
+                                            size="small"
+                                            sx={{
+                                                bgcolor: (theme) =>
+                                                    expired
+                                                        ? alpha(
+                                                              theme.palette
+                                                                  .grey[500],
+                                                              0.18,
+                                                          )
+                                                        : alpha(
+                                                              theme.palette
+                                                                  .primary.main,
+                                                              0.08,
+                                                          ),
+                                                color: expired
+                                                    ? "text.secondary"
+                                                    : "primary.main",
+                                                borderRadius: "4px",
+                                                fontWeight: 600,
+                                            }}
+                                        />
                                         <Typography
                                             variant="caption"
                                             color="text.secondary"
-                                            sx={{ mb: 1 }}
                                         >
-                                            <b>
-                                                {" "}
-                                                {`${dayjs(event.startTime).format("h:mm A")} to ${dayjs(event.endTime).format("h:mm A")}`}
-                                            </b>
+                                            <b> {event.location}</b>
                                         </Typography>
-                                    )}
-                                </Stack>
+                                        {event.startTime && event.endTime && (
+                                            <Typography
+                                                variant="caption"
+                                                color="text.secondary"
+                                                sx={{ mb: 1 }}
+                                            >
+                                                <b>
+                                                    {" "}
+                                                    {`${dayjs(event.startTime).format("h:mm A")} to ${dayjs(event.endTime).format("h:mm A")}`}
+                                                </b>
+                                            </Typography>
+                                        )}
+                                    </Stack>
 
-                                <Typography
-                                    variant="h5"
-                                    fontWeight={700}
-                                    gutterBottom
-                                >
-                                    {event.title}
-                                </Typography>
+                                    <Typography
+                                        variant="h5"
+                                        fontWeight={700}
+                                        gutterBottom
+                                    >
+                                        {event.title}
+                                    </Typography>
 
-                                <Typography
-                                    variant="body1"
-                                    color="text.secondary"
-                                    sx={{
-                                        mb: 1.5,
-                                        lineHeight: 1.6,
-                                        display: "-webkit-box",
-                                        WebkitLineClamp: 4,
-                                        WebkitBoxOrient: "vertical",
-                                        overflow: "hidden",
-                                    }}
-                                    ref={(el) => {
-                                        if (el) {
-                                            const isOverflow =
-                                                el.scrollHeight >
-                                                el.clientHeight + 1;
-                                            const key = event.id ?? index;
-                                            if (clamped[key] !== isOverflow) {
-                                                setClamped((prev) => ({
-                                                    ...prev,
-                                                    [key]: isOverflow,
-                                                }));
+                                    <Typography
+                                        variant="body1"
+                                        color="text.secondary"
+                                        sx={{
+                                            mb: 1.5,
+                                            lineHeight: 1.6,
+                                            display: "-webkit-box",
+                                            WebkitLineClamp: 4,
+                                            WebkitBoxOrient: "vertical",
+                                            overflow: "hidden",
+                                        }}
+                                        ref={(el) => {
+                                            if (el) {
+                                                const isOverflow =
+                                                    el.scrollHeight >
+                                                    el.clientHeight + 1;
+                                                const key = event.id ?? index;
+                                                if (
+                                                    clamped[key] !== isOverflow
+                                                ) {
+                                                    setClamped((prev) => ({
+                                                        ...prev,
+                                                        [key]: isOverflow,
+                                                    }));
+                                                }
                                             }
-                                        }
-                                    }}
-                                >
-                                    {event.description}
-                                </Typography>
-
-                                {clamped[event.id ?? index] && (
-                                    <Button
-                                        variant="text"
-                                        sx={{
-                                            textTransform: "none",
-                                            fontWeight: 600,
-                                            px: 0,
-                                            mb: 2,
                                         }}
-                                        onClick={() => openDetails(event)}
                                     >
-                                        Read more
-                                    </Button>
-                                )}
+                                        {event.description}
+                                    </Typography>
 
-                                <Box
-                                    sx={{
-                                        display: "flex",
-                                        justifyContent: "flex-end",
-                                    }}
-                                >
-                                    <Button
-                                        variant="text"
+                                    {clamped[event.id ?? index] && (
+                                        <Button
+                                            variant="text"
+                                            disabled={expired}
+                                            sx={{
+                                                textTransform: "none",
+                                                fontWeight: 600,
+                                                px: 0,
+                                                mb: 2,
+                                            }}
+                                            onClick={
+                                                expired
+                                                    ? undefined
+                                                    : () => openDetails(event)
+                                            }
+                                        >
+                                            Read more
+                                        </Button>
+                                    )}
+
+                                    <Box
                                         sx={{
-                                            textTransform: "none",
-                                            fontWeight: 600,
-                                            fontSize: "1rem",
+                                            display: "flex",
+                                            justifyContent: "flex-end",
                                         }}
-                                        onClick={() => openDetails(event)}
                                     >
-                                        Details
-                                    </Button>
-                                </Box>
-                            </CardContent>
-                        </Card>
-                    </Grid>
-                ))}
+                                        <Button
+                                            variant="text"
+                                            disabled={expired}
+                                            sx={{
+                                                textTransform: "none",
+                                                fontWeight: 600,
+                                                fontSize: "1rem",
+                                            }}
+                                            onClick={
+                                                expired
+                                                    ? undefined
+                                                    : () => openDetails(event)
+                                            }
+                                        >
+                                            Details
+                                        </Button>
+                                    </Box>
+                                </CardContent>
+                            </Card>
+                        </Grid>
+                    );
+                })}
             </Grid>
 
             <Dialog
